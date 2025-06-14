@@ -1,6 +1,7 @@
 package com.example.SecurityApp.config;
 
 import com.example.SecurityApp.filters.JwtAuthFilter;
+import com.example.SecurityApp.handlers.Oauth2SuccessHandler;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -24,9 +25,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class WebSecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+    private final Oauth2SuccessHandler oauth2SuccessHandler;
 
-    public WebSecurityConfig(JwtAuthFilter jwtAuthFilter) {
+    public WebSecurityConfig(JwtAuthFilter jwtAuthFilter, Oauth2SuccessHandler oauth2SuccessHandler) {
         this.jwtAuthFilter = jwtAuthFilter;
+        this.oauth2SuccessHandler = oauth2SuccessHandler;
     }
 
     @Bean
@@ -34,12 +37,15 @@ public class WebSecurityConfig {
         httpSecurity
                 .authorizeHttpRequests(auth -> auth
                                 .requestMatchers("/api/v1/posts","/api/v1/error","/api/v1/public/**",
-                                        "/api/v1/auth/**").permitAll()
+                                        "/api/v1/auth/**","/home.html").permitAll()
                                 .anyRequest().authenticated())
                 .csrf(csrfConfig -> csrfConfig.disable())
                 .sessionManagement(sessionConfig -> sessionConfig
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+                .oauth2Login(oauth2config -> oauth2config
+                        .failureUrl("/api/v1/login?error=true")
+                        .successHandler(oauth2SuccessHandler));
         return httpSecurity.build();
     }
 
