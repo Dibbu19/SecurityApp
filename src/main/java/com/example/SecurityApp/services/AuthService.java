@@ -24,14 +24,16 @@ public class AuthService {
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserService userService;
+    private final SessionService sessionService;
 
-    public AuthService(AuthenticationManager authenticationManager, JwtService jwtService, UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder, UserService userService) {
+    public AuthService(AuthenticationManager authenticationManager, JwtService jwtService, UserRepository userRepository, ModelMapper modelMapper, PasswordEncoder passwordEncoder, UserService userService, SessionService sessionService) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
         this.passwordEncoder = passwordEncoder;
         this.userService = userService;
+        this.sessionService = sessionService;
     }
 
     public UserDTO signUp(SignUpDTO signUpDTO) {
@@ -52,12 +54,13 @@ public class AuthService {
         User user = (User) authentication.getPrincipal();
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
-
+        sessionService.generateSession(user,refreshToken);
         return new LoginResponseDTO(user.getId(), accessToken,refreshToken);
     }
 
     public LoginResponseDTO refreshToken(String refreshToken) {
         Long userId = jwtService.getUserIdFromToken(refreshToken);
+        sessionService.validateSession(refreshToken);
         User user = userService.getUserById(userId);
 
         String accessToken = jwtService.generateAccessToken(user);
