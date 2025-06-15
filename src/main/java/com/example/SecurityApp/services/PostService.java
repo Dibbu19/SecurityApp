@@ -43,8 +43,6 @@ public class PostService implements PostServiceInterface{
 
     @Override
     public PostDTO getPostById(Long id) {
-        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        log.info("User {}",user);
         PostEntity postEntity = postRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Resource not found with id"+id));
         return modelMapper.map(postEntity, PostDTO.class);
