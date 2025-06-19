@@ -1,5 +1,6 @@
 package com.example.SecurityApp.config;
 
+import com.example.SecurityApp.enums.Permission;
 import com.example.SecurityApp.enums.Role;
 import com.example.SecurityApp.filters.JwtAuthFilter;
 import com.example.SecurityApp.handlers.Oauth2SuccessHandler;
@@ -48,6 +49,8 @@ public class WebSecurityConfig {
                                 .requestMatchers(publicRoutes).permitAll()
                         .requestMatchers(HttpMethod.GET,"/api/v1/posts/**").permitAll()
                         .requestMatchers(HttpMethod.POST,"/api/v1/posts/**").hasAnyRole(ADMIN.name(), Creator.name())
+                        .requestMatchers(HttpMethod.POST,"/api/v1/posts/**")
+                            .hasAnyAuthority(Permission.POST_CREATE.name())
                                 .anyRequest().authenticated())
                 .csrf(csrfConfig -> csrfConfig.disable())
                 .sessionManagement(sessionConfig -> sessionConfig
